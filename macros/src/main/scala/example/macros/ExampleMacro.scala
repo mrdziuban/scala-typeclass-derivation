@@ -14,8 +14,9 @@ object ExampleMacro {
       c.abort(c.enclosingPosition, "Type must be a case class")
 
     val accumulated = tpe.decls.collect {
-      case m: MethodSymbol if m.isCaseAccessor => q"implicitly[Csv[${m.returnType}]].apply(value.${m.name})"
-    }.foldLeft(q"List[String]()")((a, b) => q"$a ++ $b")
+      case m: MethodSymbol if m.isCaseAccessor =>
+        q"implicitly[Csv[${m.returnType.asSeenFrom(tpe, tpe.typeSymbol)}]].apply(value.${m.name})"
+    }.reduceLeft((a, b) => q"$a ++ $b")
 
     q"new Csv[$tpe] { def apply(value: $tpe): List[String] = $accumulated }"
   }
