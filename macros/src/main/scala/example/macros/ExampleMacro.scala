@@ -10,7 +10,8 @@ object ExampleMacro {
 
     val tpe = c.weakTypeOf[A]
 
-    if (!tpe.typeSymbol.isClass) c.abort(c.enclosingPosition, "Type must be a case class")
+    if (!(tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass))
+      c.abort(c.enclosingPosition, "Type must be a case class")
 
     val accumulated = tpe.decls.collect {
       case m: MethodSymbol if m.isCaseAccessor => q"implicitly[Csv[${m.returnType}]].apply(value.${m.name})"
