@@ -17,10 +17,13 @@ object Example extends LPCsv {
 
   case class Foo(s: String)
   case class TypeParam[A](a: A)
+
   case class Wrapper(tp: TypeParam[Foo])
+  case class TypeParamWrapper[A](tp: TypeParam[A])
+
+  // Deriving this compiles
+  // implicitly[Csv[Seq[TypeParamWrapper[Foo]]]]
 
   // Deriving this results in a diverging implicit error
-  case class Test(wrapper: Seq[Wrapper])
-
-  implicitly[Csv[Test]]
+  implicitly[Csv[Seq[Wrapper]]]
 }
