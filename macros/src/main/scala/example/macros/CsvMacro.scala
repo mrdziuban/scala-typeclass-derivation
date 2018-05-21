@@ -11,11 +11,13 @@ object CsvMacro {
 
     // println(s"Deriving Csv[$tpe]")
 
-    val accumulated = tpe.decls
-      .collect { case m: MethodSymbol if m.isCaseAccessor =>
-        q"implicitly[Csv[${m.returnType.asSeenFrom(tpe, tpe.typeSymbol)}]].apply(x.${m.name})" }
-      .foldLeft(q"List[String]()")((acc, x) => q"$acc ++ $x")
+    if (tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass) {
+      val accumulated = tpe.decls
+        .collect { case m: MethodSymbol if m.isCaseAccessor =>
+          q"implicitly[Csv[${m.returnType.asSeenFrom(tpe, tpe.typeSymbol)}]].apply(x.${m.name})" }
+        .foldLeft(q"List[String]()")((acc, x) => q"$acc ++ $x")
 
-    c.Expr[Csv[A]](q"new Csv[$tpe] { def apply(x: $tpe): List[String] = $accumulated }")
+      c.Expr[Csv[A]](q"new Csv[$tpe] { def apply(x: $tpe): List[String] = $accumulated }")
+    } else c.abort(c.enclosingPosition, "Type is not case class")
   }
 }
