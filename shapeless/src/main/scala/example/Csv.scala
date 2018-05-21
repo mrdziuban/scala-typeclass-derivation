@@ -1,10 +1,11 @@
 package example.shapeless
 
 import example.CaseClasses._
-import example.Csv
 import _root_.shapeless.{::, :+:, CNil, Coproduct, HList, HNil, LabelledTypeClassCompanion, LabelledTypeClass}
 
-object csvDerivation extends LabelledTypeClassCompanion[Csv] {
+trait Csv[A] { def apply(a: A): List[String] }
+
+object Csv extends LabelledTypeClassCompanion[Csv] {
   object typeClass extends LabelledTypeClass[Csv] {
     def emptyProduct: Csv[HNil] = new Csv[HNil] { def apply(a: HNil): List[String] = List() }
     def emptyCoproduct: Csv[CNil] = new Csv[CNil] { def apply(a: CNil): List[String] = List() }
@@ -23,7 +24,7 @@ object csvDerivation extends LabelledTypeClassCompanion[Csv] {
   }
 }
 
-object csv {
+object Example {
   implicit val csvStr: Csv[String] = new Csv[String] { def apply(a: String): List[String] = List(a) }
   implicit val csvInt: Csv[Int] = new Csv[Int] { def apply(a: Int): List[String] = List(a.toString) }
   implicit val csvLong: Csv[Long] = new Csv[Long] { def apply(a: Long): List[String] = List(a.toString) }
@@ -39,14 +40,6 @@ object csv {
   implicit def csvOpt[A](implicit ca: Csv[A]): Csv[Option[A]] = new Csv[Option[A]] {
     def apply(a: Option[A]): List[String] = a.map(ca(_)).getOrElse(List("null"))
   }
-
-  case class Foo(s: String)
-  case class TypeParam[A](a: A)
-
-  case class Wrapper(tp: TypeParam[Foo])
-  case class TypeParamWrapper[A](tp: TypeParam[A])
-
-  import csvDerivation._
 
   implicitly[Csv[Test1]]
   implicitly[Csv[Wrapper1[Test1]]]

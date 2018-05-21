@@ -1,9 +1,11 @@
 package example.macros
 
-import example.Csv
+import scala.language.experimental.{macros => m}
 import scala.reflect.macros.whitebox.Context
 
-object CsvMacro {
+trait Csv[A] { def apply(a: A): List[String] }
+
+object Csv {
   def csvImpl[A: c.WeakTypeTag](c: Context): c.Expr[Csv[A]] = {
     import c.universe._
 
@@ -18,4 +20,6 @@ object CsvMacro {
 
     c.Expr[Csv[A]](q"new Csv[$tpe] { def apply(x: $tpe): List[String] = $accumulated }")
   }
+
+  implicit def deriveCsv[A]: Csv[A] = macro csvImpl[A]
 }
